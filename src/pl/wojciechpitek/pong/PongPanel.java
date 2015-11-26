@@ -11,7 +11,6 @@ import javax.swing.Timer;
 import javax.swing.JPanel;
 
 /* TODO:
- * - AI for right player
  * - Small changes and bugfixing
  */
 
@@ -32,7 +31,8 @@ public class PongPanel extends JPanel implements ActionListener, KeyListener {
 	private int padPlayerW = 5;
 	private int padPlayerH = 100;
 	
-	private int playerPadY = PongPanel.verticalCenter - this.padPlayerH; // Top of pad
+	private int playerPadY = PongPanel.verticalCenter - this.padPlayerH / 2; // Top of pad
+	private int enemyPadY = PongPanel.verticalCenter - this.padPlayerH / 2; // Top of pad
 	
 	private int padSpeed = 4;
 	
@@ -78,7 +78,7 @@ public class PongPanel extends JPanel implements ActionListener, KeyListener {
 		g.fillOval( this.ballX, this.ballY, this.ballSize, this.ballSize );
 		
 		g.fillRect( 15,  this.playerPadY, this.padPlayerW, this.padPlayerH );
-		g.fillRect( getWidth() - 15 - this.padPlayerW ,  this.playerPadY, this.padPlayerW, this.padPlayerH );
+		g.fillRect( getWidth() - 15 - this.padPlayerW ,  this.enemyPadY, this.padPlayerW, this.padPlayerH );
 	
 	
 		g.drawString( this.scoreL + " : " + this.scoreR, PongPanel.startX, 15 );
@@ -111,6 +111,13 @@ public class PongPanel extends JPanel implements ActionListener, KeyListener {
 		int ballNextX = this.ballX + this.deltaX * this.speed;
 		int ballNextY = this.ballY + this.deltaY * this.speed;
 		
+		if( this.enemyPadY + this.padPlayerH < this.getHeight( ) + this.padSpeed - this.ballSize / 2 && ballNextY - this.padPlayerH / 2 > this.enemyPadY ) {
+			this.enemyPadY += this.padSpeed;
+		}
+		
+		if( this.enemyPadY > this.padSpeed - this.ballSize / 2 && ballNextY - this.padPlayerH / 2 < this.enemyPadY ) {
+			this.enemyPadY -= this.padSpeed;
+		}
 		
 		if( ballNextX <= 0 || ballNextX + this.ballSize >= this.getWidth() ) {
 			
@@ -132,8 +139,32 @@ public class PongPanel extends JPanel implements ActionListener, KeyListener {
 		
 		/* Ball touches a pad */
 		
-		if( ( ballNextX <= 15 || ballNextX >= this.getWidth( ) - 30 ) && ballNextY >= this.playerPadY + (int) (this.ballSize / 2 ) && ballNextY <= this.playerPadY + this.padPlayerH - (int) (this.ballSize / 2 ) ) {
+		if( ballNextX <= 15 && ballNextY >= this.playerPadY - (int) ( this.ballSize / 2 ) && ballNextY <= this.playerPadY + this.padPlayerH + (int) (this.ballSize / 2 ) ) {
 			this.deltaX *= -1;
+			
+			int part = this.padPlayerH / 3;
+			if( ballNextY < this.playerPadY + part ) {
+				if( this.deltaY > 1 || this.deltaY < -1 )
+					this.deltaY /= 2;
+			}
+			if( ballNextY > this.playerPadY + part * 2 ) {
+				this.deltaY *= 2;
+			}
+			
+		}
+		
+		if( ballNextX >= this.getWidth( ) - 30 && ballNextY >= this.enemyPadY - (int) ( this.ballSize / 2 ) && ballNextY <= this.enemyPadY + this.padPlayerH + (int) ( this.ballSize / 2 ) ) {
+			this.deltaX *= -1;
+			
+			int part = this.padPlayerH / 3;
+			if( ballNextY < this.enemyPadY + part ) {
+				if( this.deltaY > 1 || this.deltaY < -1 )
+					this.deltaY /= 2;
+			}
+			if( ballNextY > this.enemyPadY + part * 2 ) {
+				this.deltaY *= 2;
+			}
+			
 		}
 		
 		ballX += deltaX * this.speed;
